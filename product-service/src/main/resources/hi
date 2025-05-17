@@ -1,3 +1,8 @@
     url:jdbc:mysql://${DB_HOST:localhost}:3306/productdb
     username:root
     password:root
+
+
+        url: jdbc:mysql://maglev.proxy.rlwy.net:15106/railway
+        username: root
+        password: JIHlVTuInRMKbApKSgoiPpsohPdtMmQv
