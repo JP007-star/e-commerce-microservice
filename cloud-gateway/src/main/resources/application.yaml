@@ -6,33 +6,53 @@ spring:
     name: api-gateway
   config:
     import: configserver:http://localhost:9296
+
+  redis:
+    host: localhost
+    port: 6379
+
   cloud:
     gateway:
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 1
+            redis-rate-limiter.burstCapacity: 1
+            key-resolver: "#{@userKeyResolver}"  # Important: use SpEL!
       routes:
         - id: order-service
           uri: lb://order-service
           predicates:
             - Path=/order/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: order-service
+                fallbackuri: forward:/orderServiceFallback
         - id: product-service
           uri: lb://product-service
           predicates:
             - Path=/product/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: product-service
+                fallbackuri: forward:/productServiceFallback
         - id: payment-service
           uri: lb://payment-service
           predicates:
             - Path=/payment/**
-
-
-
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: payment-service
+                fallbackuri: forward:/paymentServiceFallback
 
 eureka:
-  instance:
-    prefer-ip-address: true
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka
-
-
-
+  instance:
+    prefer-ip-address: true
