@@ -1,7 +1,9 @@
 package com.smile.paymentService.service;
 
 import com.smile.paymentService.entity.TransactionalDetails;
+import com.smile.paymentService.model.PaymentMode;
 import com.smile.paymentService.model.PaymentRequest;
+import com.smile.paymentService.model.PaymentResponse;
 import com.smile.paymentService.repository.TransactionalDetailsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,7 @@ public class PaymentServiceImpl implements PaymentService{
 
         TransactionalDetails transactionalDetails=TransactionalDetails.builder()
                 .paymentMode(paymentRequest.getPaymentMode().name())
+                .orderId(paymentRequest.getOrderId())
                 .paymentDate(Instant.now())
                 .paymentStatus("SUCCESS")
                 .amount(paymentRequest.getAmount())
@@ -34,5 +37,23 @@ public class PaymentServiceImpl implements PaymentService{
 
         log.info("Transactional Details Completed with Id ..! ::{}",transactionalDetails.getId());
         return transactionalDetails.getId();
+    }
+
+    @Override
+    public PaymentResponse getPaymentDetailsById(String orderId) {
+
+        log.info("Getting payment details  :: by Order Id {}",orderId);
+
+        TransactionalDetails transactionalDetails=transactionalDetailsRepository.findByOrderId(Long.parseLong(orderId));
+
+        PaymentResponse paymentResponse=PaymentResponse.builder()
+                .paymentId(transactionalDetails.getId())
+                .paymentDate(transactionalDetails.getPaymentDate())
+                .paymentMode(PaymentMode.valueOf(transactionalDetails.getPaymentMode()))
+                .orderId(transactionalDetails.getOrderId())
+                .status(transactionalDetails.getPaymentStatus())
+                .amount(transactionalDetails.getAmount())
+                .build();
+        return paymentResponse;
     }
 }
